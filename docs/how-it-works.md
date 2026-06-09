@@ -64,9 +64,10 @@ cron on private machine
   -> npm run pipeline -- --allow-fallback
   -> scripts/collect_reddit.py
   -> rdt-cli reads Reddit
+  -> rdt read <post_id> reads selected post bodies + top comments
   -> public/data/latest.json
   -> scripts/run_claude_report.py
-  -> claude -p writes analysis + commercial decision
+  -> claude -p writes trend analysis + community voice + commercial decision
   -> public/data/reports/<timestamp>.json
   -> public/data/index.json
   -> npm run build
@@ -87,11 +88,11 @@ The static app has no server. It loads JSON files from GitHub Pages:
 
 The React app renders these into tabs:
 
-- `Product`: product landing page.
 - `Live Report`: latest or selected report.
 - `Reports`: report archive.
-- `Commercial`: business-use decision screen.
-- `Setup & Deploy`: installation and deployment guide.
+- `Decision Inputs`: qualitative community voice plus business-use decision materials.
+- `Why`: product landing page.
+- `How`: installation and deployment guide.
 
 ## Why Collection and Deployment Are Split
 
@@ -137,16 +138,12 @@ GitHub Pages will rebuild automatically.
 
 ## Current Limitation
 
-The current pipeline reads post listing data and self-post text. It does not yet automatically read top comments.
-
-The next planned step is comment-enriched collection:
+The current pipeline reads selected top comments, but it does not yet automatically update the long-lived model reputation files from those comments.
 
 ```text
-top posts
-  -> rdt read <post_id>
-  -> top comments
-  -> qualitative sentiment
-  -> model reputation updates
+community_voice
+  -> model reputation update
+  -> Models UI
 ```
 
 See `docs/roadmap.md`.

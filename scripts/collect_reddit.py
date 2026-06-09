@@ -53,6 +53,102 @@ def run_rdt(subreddit: str, sort: str, time_filter: str, limit: int) -> dict[str
     return json.loads(raw)
 
 
+def run_rdt_read(post_id: str) -> dict[str, Any] | None:
+    base_cmd, cwd = rdt_command()
+    cmd = [*base_cmd, "read", post_id, "--json"]
+    try:
+        raw = subprocess.check_output(cmd, text=True, stderr=subprocess.PIPE, cwd=cwd)
+    except subprocess.CalledProcessError as exc:
+        message = exc.stderr.strip() or exc.stdout.strip() or str(exc)
+        print(f"warning: rdt read failed for {post_id}: {message}")
+        return None
+    return json.loads(raw)
+
+
+def normalize_comment(comment: dict[str, Any], *, depth: int, max_depth: int) -> dict[str, Any]:
+    replies = []
+    if depth < max_depth:
+        for reply in comment.get("replies", []) or []:
+            if reply.get("author") == "[more]":
+                continue
+            replies.append(normalize_comment(reply, depth=depth + 1, max_depth=max_depth))
+    return {
+        "id": comment.get("id"),
+        "fullname": comment.get("fullname"),
+        "author": comment.get("author"),
+        "score": comment.get("score", 0),
+        "body": (comment.get("body") or "").strip()[:1200],
+        "created_utc": comment.get("created_utc"),
+        "replies": replies,
+    }
+
+
+def coerce_read_detail(detail: dict[str, Any]) -> dict[str, Any]:
+    data = detail.get("data")
+    if isinstance(data, dict):
+        return data
+    if not isinstance(data, list) or len(data) < 2:
+        return {}
+
+    post = {}
+    comments: list[dict[str, Any]] = []
+    try:
+        post_children = data[0]["data"].get("children", [])
+        if post_children:
+            post = normalize_post(post_children[0], rank=0)
+    except (KeyError, TypeError, IndexError):
+        post = {}
+
+    try:
+        comment_children = data[1]["data"].get("children", [])
+    except (KeyError, TypeError, IndexError):
+        comment_children = []
+    for child in comment_children:
+        if child.get("kind") != "t1":
+            continue
+        raw = child.get("data", {})
+        comments.append(
+            {
+                "id": raw.get("id"),
+                "fullname": raw.get("name"),
+                "author": raw.get("author"),
+                "score": raw.get("score", 0),
+                "body": raw.get("body", ""),
+                "created_utc": raw.get("created_utc"),
+                "replies": [],
+            }
+        )
+    return {"post": post, "comments": comments, "more_count": 0, "more_children": []}
+
+
+def enrich_posts_with_discussion(posts: list[dict[str, Any]], config: dict[str, Any]) -> None:
+    read_top_posts = int(config.get("read_top_posts", 0))
+    max_comments = int(config.get("max_comments_per_post", 0))
+    comment_depth = int(config.get("comment_depth", 1))
+    if read_top_posts <= 0 or max_comments <= 0:
+        return
+
+    for post in posts[:read_top_posts]:
+        detail = run_rdt_read(post["id"])
+        if not detail or not detail.get("ok"):
+            continue
+        data = coerce_read_detail(detail)
+        detailed_post = data.get("post") or {}
+        if detailed_post.get("selftext"):
+            post["text"] = detailed_post["selftext"][:4000]
+        comments = data.get("comments", []) or []
+        normalized_comments = [
+            normalize_comment(comment, depth=0, max_depth=comment_depth)
+            for comment in comments[:max_comments]
+            if comment.get("author") != "[more]" and (comment.get("body") or "").strip()
+        ]
+        post["discussion"] = {
+            "comments_collected": len(normalized_comments),
+            "more_count": data.get("more_count", 0),
+            "comments": normalized_comments,
+        }
+
+
 def normalize_post(post: dict[str, Any], rank: int) -> dict[str, Any]:
     data = post["data"]
     created_utc = data.get("created_utc") or 0
@@ -80,6 +176,7 @@ def normalize_post(post: dict[str, Any], rank: int) -> dict[str, Any]:
         "is_video": bool(data.get("is_video")),
         "over_18": bool(data.get("over_18")),
         "text": text[:4000],
+        "discussion": None,
     }
 
 
@@ -92,6 +189,9 @@ def collect(config: dict[str, Any]) -> dict[str, Any]:
             "sort": config.get("sort", "top"),
             "time": config.get("time", "week"),
             "limit": int(config.get("limit", 30)),
+            "read_top_posts": int(config.get("read_top_posts", 0)),
+            "max_comments_per_post": int(config.get("max_comments_per_post", 0)),
+            "comment_depth": int(config.get("comment_depth", 1)),
         },
         "subreddits": [],
         "analysis": None,
@@ -100,6 +200,7 @@ def collect(config: dict[str, Any]) -> dict[str, Any]:
         raw = run_rdt(subreddit, report["query"]["sort"], report["query"]["time"], report["query"]["limit"])
         listing = raw["data"]["data"]
         posts = [normalize_post(item, idx) for idx, item in enumerate(listing.get("children", []), 1)]
+        enrich_posts_with_discussion(posts, config)
         report["subreddits"].append(
             {
                 "name": subreddit,

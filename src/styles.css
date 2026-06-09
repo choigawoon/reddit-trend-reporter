@@ -236,6 +236,169 @@ main {
   grid-template-columns: minmax(0, 1fr) 260px;
 }
 
+.voiceHero {
+  grid-template-columns: minmax(0, 1fr) 260px;
+}
+
+.sentimentCard {
+  min-height: 190px;
+  border: 1px solid #bfc8d2;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 22px;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+}
+
+.sentimentCard span {
+  color: #64717f;
+  font-size: 13px;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.sentimentCard strong {
+  font-size: 32px;
+  line-height: 1;
+  text-transform: capitalize;
+}
+
+.sentimentCard p {
+  margin: 0;
+  color: #596674;
+}
+
+.sentimentCard.positive {
+  border-color: #2d8a58;
+  background: #f0faf4;
+}
+
+.sentimentCard.mixed,
+.sentimentCard.polarized {
+  border-color: #d49b2a;
+  background: #fff8e8;
+}
+
+.sentimentCard.negative {
+  border-color: #c6584f;
+  background: #fff2f0;
+}
+
+.voiceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 22px 0;
+}
+
+.voicePanel {
+  border: 1px solid #d7dbe2;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 18px;
+}
+
+.voicePanel h2 {
+  margin: 0 0 14px;
+  font-size: 17px;
+}
+
+.voicePanel article {
+  padding: 12px 0;
+  border-top: 1px solid #edf0f3;
+}
+
+.voicePanel article:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.voicePanel p {
+  margin: 0;
+  color: #47515c;
+  line-height: 1.5;
+}
+
+.quoteList {
+  display: grid;
+  gap: 12px;
+}
+
+.quoteList blockquote {
+  margin: 0;
+  padding: 12px;
+  border-left: 3px solid #1f6f78;
+  background: #f6f8fa;
+}
+
+.quoteList svg {
+  color: #1f6f78;
+}
+
+.quoteList p {
+  margin: 6px 0;
+  color: #38434f;
+  line-height: 1.45;
+}
+
+.quoteList span {
+  color: #7a8490;
+  font-size: 12px;
+}
+
+.voiceSummary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #d7dbe2;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 18px;
+  margin-bottom: 22px;
+}
+
+.voiceSummary h2 {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+
+.voiceSummary p {
+  margin: 0;
+  color: #596674;
+  line-height: 1.55;
+}
+
+.sentimentPill {
+  min-height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #eef4f5;
+  color: #1f6f78;
+  font-weight: 760;
+  text-transform: capitalize;
+}
+
+.commentPreview {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f6f8fa;
+}
+
+.commentPreview strong {
+  font-size: 13px;
+}
+
+.commentPreview p {
+  color: #47515c;
+  font-size: 14px;
+}
+
 .verdictCard {
   min-height: 190px;
   border: 1px solid #bfc8d2;
@@ -671,6 +834,9 @@ select {
   .commercialGrid,
   .decisionGrid,
   .commercialHero,
+  .voiceGrid,
+  .voiceHero,
+  .voiceSummary,
   .analysisGrid,
   .toolbar {
     grid-template-columns: 1fr;

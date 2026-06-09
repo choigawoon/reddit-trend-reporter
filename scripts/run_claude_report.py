@@ -24,6 +24,26 @@ Return only valid JSON with this shape:
   "signals": [
     {"label": "signal", "detail": "Korean detail"}
   ],
+  "community_voice": {
+    "summary": "Korean qualitative summary of post bodies and comments",
+    "sentiment": "positive | mixed | negative | polarized | unclear",
+    "confidence": 0.0,
+    "praise": [
+      {"point": "what users praise", "evidence_post_ids": ["..."], "evidence_comment_ids": ["..."]}
+    ],
+    "complaints": [
+      {"point": "what users complain about", "evidence_post_ids": ["..."], "evidence_comment_ids": ["..."]}
+    ],
+    "adoption_blockers": [
+      {"point": "what blocks real use", "evidence_post_ids": ["..."], "evidence_comment_ids": ["..."]}
+    ],
+    "model_reputation_notes": [
+      {"model": "model/tool name", "note": "qualitative reputation note", "evidence_post_ids": ["..."], "evidence_comment_ids": ["..."]}
+    ],
+    "representative_quotes": [
+      {"kind": "praise | complaint | risk | use_case", "quote": "short excerpt under 25 words", "post_id": "...", "comment_id": "..."}
+    ]
+  },
   "commercial": {
     "verdict": "Go | Watch | Avoid",
     "confidence": 0.0,
@@ -48,7 +68,7 @@ Return only valid JSON with this shape:
   "risks_or_caveats": ["Korean caveat"]
 }
 
-Commercial means practical business/product/content use. Be conservative about IP, licensing, safety-filter bypass, user privacy, and brand risk. Use only the provided snapshot. Do not invent external facts.
+Use post bodies and comments when available. Commercial means practical business/product/content use. Be conservative about IP, licensing, safety-filter bypass, user privacy, and brand risk. Use only the provided snapshot. Do not invent external facts.
 """
 
 
@@ -57,6 +77,25 @@ def compact_snapshot(data: dict[str, Any]) -> dict[str, Any]:
     for sub in data.get("subreddits", []):
         posts = []
         for p in sub.get("posts", []):
+            comments = []
+            discussion = p.get("discussion") or {}
+            for comment in (discussion.get("comments") or [])[:12]:
+                comments.append(
+                    {
+                        "id": comment.get("id"),
+                        "author": comment.get("author"),
+                        "score": comment.get("score"),
+                        "body": (comment.get("body") or "")[:650],
+                        "replies": [
+                            {
+                                "id": reply.get("id"),
+                                "score": reply.get("score"),
+                                "body": (reply.get("body") or "")[:300],
+                            }
+                            for reply in (comment.get("replies") or [])[:3]
+                        ],
+                    }
+                )
             posts.append(
                 {
                     "rank": p["rank"],
@@ -65,7 +104,11 @@ def compact_snapshot(data: dict[str, Any]) -> dict[str, Any]:
                     "score": p["score"],
                     "comments": p["comments"],
                     "flair": p.get("flair"),
-                    "text": p.get("text", "")[:700],
+                    "text": p.get("text", "")[:1000],
+                    "discussion": {
+                        "comments_collected": discussion.get("comments_collected", 0),
+                        "comments": comments,
+                    },
                 }
             )
         subreddits.append({"name": sub["name"], "posts": posts})
@@ -112,6 +155,16 @@ def fallback_analysis(snapshot: dict[str, Any]) -> dict[str, Any]:
             {"label": "top_posts", "detail": f"분석 대상 게시글 {len(posts)}개"},
             {"label": "keyword_fallback", "detail": "LLM 실패 시에도 웹 리포트가 비지 않도록 기본 집계를 제공합니다."},
         ],
+        "community_voice": {
+            "summary": "LLM 분석을 실행하지 못해 댓글 기반 정성평가를 제한적으로 제공합니다. 수집된 댓글이 있으면 UI에서 원문 근거를 확인하고, 다음 실행에서 Claude 분석을 재시도하세요.",
+            "sentiment": "unclear",
+            "confidence": 0.25,
+            "praise": [],
+            "complaints": [],
+            "adoption_blockers": [],
+            "model_reputation_notes": [],
+            "representative_quotes": [],
+        },
         "commercial": {
             "verdict": "Watch",
             "confidence": 0.45,

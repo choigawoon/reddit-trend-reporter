@@ -1,6 +1,16 @@
 {
   "reports": [
     {
+      "generated_at": "2026-06-09T15:15:42+00:00",
+      "path": "reports/20260609T151542Z.json",
+      "subreddits": [
+        "StableDiffusion"
+      ],
+      "sort": "top",
+      "time": "week",
+      "post_count": 30
+    },
+    {
       "generated_at": "2026-06-09T14:37:02+00:00",
       "path": "reports/20260609T143702Z.json",
       "subreddits": [
@@ -12,8 +22,8 @@
     }
   ],
   "latest": {
-    "generated_at": "2026-06-09T14:37:02+00:00",
-    "path": "reports/20260609T143702Z.json",
+    "generated_at": "2026-06-09T15:15:42+00:00",
+    "path": "reports/20260609T151542Z.json",
     "subreddits": [
       "StableDiffusion"
     ],

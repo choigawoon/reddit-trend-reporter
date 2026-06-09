@@ -4,6 +4,8 @@
 
 Goal: read what people are actually saying, not only post titles and scores.
 
+Status: implemented for configurable top posts and top comments.
+
 Implementation plan:
 
 1. Add config fields:
@@ -30,6 +32,8 @@ Implementation plan:
 
 Goal: identify how the community feels.
 
+Status: implemented in `analysis.community_voice`.
+
 LLM output should include:
 
 - praised capabilities
@@ -43,6 +47,8 @@ LLM output should include:
 ## Phase 3: Model Reputation Knowledge Base
 
 Goal: maintain long-lived qualitative notes per generative AI model/tool.
+
+Status: schema and seed files exist. Automatic updates are not implemented yet.
 
 Write/update `knowledge/models/<model-slug>.json` with:
 

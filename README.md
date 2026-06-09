@@ -5,7 +5,8 @@ Scheduled Reddit trend collection with a static interactive report.
 This repo separates the repeatable parts from the LLM part:
 
 - `scripts/collect_reddit.py` collects subreddit listings through `rdt-cli`.
-- `scripts/run_claude_report.py` sends a compact snapshot to `claude -p` and writes structured analysis JSON.
+- `scripts/collect_reddit.py` also reads configurable top posts and comments through `rdt read <post_id>`.
+- `scripts/run_claude_report.py` sends a compact snapshot to `claude -p` and writes trend, community voice, and commercial decision JSON.
 - `src/` renders `public/data/latest.json`, report archives, and commercial decision notes as an interactive Vite/React static page.
 - `scripts/pipeline.py` runs collect -> Claude report -> static build.
 
@@ -67,6 +68,9 @@ Edit `config/reddit-report.json`.
   "sort": "top",
   "time": "week",
   "limit": 30,
+  "read_top_posts": 8,
+  "max_comments_per_post": 12,
+  "comment_depth": 1,
   "output": "public/data/latest.json",
   "history_dir": "data/runs"
 }
@@ -104,13 +108,13 @@ This repo includes a GitHub Actions workflow that builds the Vite app and publis
 
 The workflow does not collect Reddit data, because Reddit cookies and Claude credentials should live on the scheduled machine. The scheduled machine should commit updated JSON data back to the repo, then GitHub Pages will rebuild.
 
-The published app has four operating surfaces:
+The published app has five operating surfaces:
 
-- `Product`: short landing page for explaining the product.
 - `Live Report`: the currently selected report, defaulting to latest.
 - `Reports`: individual report snapshots created by scheduled runs.
-- `Commercial`: conservative business-use evaluation from the collected posts.
-- `Setup & Deploy`: manual for installing on another machine and publishing to GitHub Pages.
+- `Decision Inputs`: qualitative community voice plus conservative business-use evaluation.
+- `Why`: short landing page for explaining the product.
+- `How`: manual for installing on another machine and publishing to GitHub Pages.
 
 ## Long-Lived Model Knowledge
 

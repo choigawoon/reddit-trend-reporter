@@ -20,7 +20,9 @@ The target workflow is:
 Implemented:
 
 - Reddit top-list collection via `rdt-cli`.
+- Comment-enriched collection for configurable top posts via `rdt read <post_id>`.
 - Claude headless report generation.
+- Community voice qualitative analysis from post bodies and collected comments.
 - Latest report JSON at `public/data/latest.json`.
 - Report archive JSON at `public/data/reports/*.json`.
 - Report index at `public/data/index.json`.
@@ -29,8 +31,6 @@ Implemented:
 
 Not yet implemented:
 
-- Comment collection with `rdt read <post_id>`.
-- Comment-level sentiment/reaction analysis.
 - Automatic model reputation updates.
 - UI for model reputation history.
 - Diffing model reputation over time.
@@ -86,10 +86,10 @@ git push
 
 ## Next Implementation Target
 
-Add a comment-enriched collection step:
+Add automatic model reputation updates:
 
 ```text
-top posts -> read top N posts -> collect body + top comments -> Claude sentiment/commercial analysis -> update knowledge/models
+community_voice + reports -> update knowledge/models -> Models UI
 ```
 
 See `docs/roadmap.md`.

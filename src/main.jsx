@@ -8,6 +8,7 @@ import {
   ExternalLink,
   Filter,
   Github,
+  Quote,
   MessageCircle,
   Rocket,
   RefreshCw,
@@ -39,7 +40,7 @@ function App() {
   const [query, setQuery] = useState('');
   const [flair, setFlair] = useState('all');
   const [sort, setSort] = useState('rank');
-  const [page, setPage] = useState('landing');
+  const [page, setPage] = useState('report');
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}data/latest.json`, { cache: 'no-store' })
@@ -94,16 +95,16 @@ function App() {
   return (
     <main>
       <nav className="topNav">
-        <button className={page === 'landing' ? 'active' : ''} onClick={() => setPage('landing')}>Product</button>
         <button className={page === 'report' ? 'active' : ''} onClick={() => setPage('report')}>Live Report</button>
         <button className={page === 'reports' ? 'active' : ''} onClick={() => setPage('reports')}>Reports</button>
-        <button className={page === 'commercial' ? 'active' : ''} onClick={() => setPage('commercial')}>Commercial</button>
-        <button className={page === 'manual' ? 'active' : ''} onClick={() => setPage('manual')}>Setup & Deploy</button>
+        <button className={page === 'decision' ? 'active' : ''} onClick={() => setPage('decision')}>Decision Inputs</button>
+        <button className={page === 'landing' ? 'active' : ''} onClick={() => setPage('landing')}>Why</button>
+        <button className={page === 'manual' ? 'active' : ''} onClick={() => setPage('manual')}>How</button>
       </nav>
 
       {page === 'landing' && <Landing data={activeData} posts={posts} setPage={setPage} />}
       {page === 'reports' && <Reports index={reportIndex} setActiveData={setActiveData} setPage={setPage} latestData={data} />}
-      {page === 'commercial' && <Commercial analysis={analysis} posts={posts} />}
+      {page === 'decision' && <DecisionInputs analysis={analysis} posts={posts} />}
       {page === 'manual' && <Manual />}
       {page === 'report' && (
         <Report
@@ -142,8 +143,8 @@ function Landing({ data, posts, setPage }) {
           <div className="heroActions">
             <button onClick={() => setPage('report')}>리포트 보기</button>
             <button className="secondary" onClick={() => setPage('reports')}>개별 리포트</button>
-            <button className="secondary" onClick={() => setPage('commercial')}>상업성 판단</button>
-            <button className="secondary" onClick={() => setPage('manual')}>배포 방법</button>
+            <button className="secondary" onClick={() => setPage('decision')}>의사결정 재료</button>
+            <button className="secondary" onClick={() => setPage('manual')}>How</button>
           </div>
         </div>
         <div className="heroPreview" aria-label="live report preview">
@@ -201,6 +202,104 @@ function Landing({ data, posts, setPage }) {
   );
 }
 
+function DecisionInputs({ analysis, posts }) {
+  return (
+    <>
+      <CommunityVoice analysis={analysis} posts={posts} embedded />
+      <Commercial analysis={analysis} posts={posts} embedded />
+    </>
+  );
+}
+
+function CommunityVoice({ analysis, posts, embedded = false }) {
+  const voice = analysis?.community_voice;
+  const evidenceMap = useMemo(() => new Map(posts.map((post) => [post.id, post])), [posts]);
+  const enrichedPosts = posts.filter((post) => post.discussion?.comments?.length);
+
+  if (!voice) {
+    return (
+      <section className="hero manualHero">
+        <div>
+          <p className="eyebrow">Community Voice</p>
+          <h1>댓글 기반 정성평가가 아직 없습니다</h1>
+          <p className="summary">새 파이프라인으로 다시 실행하면 상위 포스트의 본문과 댓글을 수집해 정성평가를 생성합니다.</p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <>
+      <section className="hero voiceHero">
+        <div>
+          <p className="eyebrow">Community Voice</p>
+          <h1>{embedded ? '본문과 댓글을 읽어 정리한 실제 반응' : '본문과 댓글을 읽어 정리한 실제 반응'}</h1>
+          <p className="summary">{voice.summary}</p>
+        </div>
+        <div className={`sentimentCard ${voice.sentiment || 'unclear'}`}>
+          <span>Sentiment</span>
+          <strong>{voice.sentiment}</strong>
+          <p>Confidence {Math.round((voice.confidence || 0) * 100)}%</p>
+        </div>
+      </section>
+
+      <section className="voiceGrid">
+        <VoicePanel title="Praise" items={voice.praise || []} evidenceMap={evidenceMap} />
+        <VoicePanel title="Complaints" items={voice.complaints || []} evidenceMap={evidenceMap} />
+        <VoicePanel title="Adoption Blockers" items={voice.adoption_blockers || []} evidenceMap={evidenceMap} />
+      </section>
+
+      <section className="analysisGrid">
+        <Panel title="Model Reputation Notes">
+          {(voice.model_reputation_notes || []).map((item) => (
+            <article className="topic" key={`${item.model}-${item.note}`}>
+              <h3>{item.model}</h3>
+              <p>{item.note}</p>
+              <div className="ids">{[...(item.evidence_post_ids || []), ...(item.evidence_comment_ids || [])].join(', ')}</div>
+            </article>
+          ))}
+        </Panel>
+        <Panel title="Representative Quotes">
+          <div className="quoteList">
+            {(voice.representative_quotes || []).map((item) => (
+              <blockquote key={`${item.comment_id || item.post_id}-${item.quote}`}>
+                <Quote size={16} />
+                <p>{item.quote}</p>
+                <span>{item.kind} · {item.post_id}{item.comment_id ? ` / ${item.comment_id}` : ''}</span>
+              </blockquote>
+            ))}
+          </div>
+        </Panel>
+        <Panel title="Collected Threads">
+          <ul className="plainList">
+            {enrichedPosts.map((post) => (
+              <li key={post.id}>
+                <strong>#{post.rank} {post.title}</strong>
+                <span>{post.discussion.comments.length} comments collected</span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      </section>
+    </>
+  );
+}
+
+function VoicePanel({ title, items, evidenceMap }) {
+  return (
+    <section className="voicePanel">
+      <h2>{title}</h2>
+      {items.map((item) => (
+        <article key={item.point}>
+          <p>{item.point}</p>
+          <Evidence ids={item.evidence_post_ids || []} evidenceMap={evidenceMap} />
+          {(item.evidence_comment_ids || []).length > 0 && <div className="ids">comments: {item.evidence_comment_ids.join(', ')}</div>}
+        </article>
+      ))}
+    </section>
+  );
+}
+
 function Reports({ index, setActiveData, setPage, latestData }) {
   const reports = index?.reports || [];
 
@@ -250,7 +349,7 @@ function Reports({ index, setActiveData, setPage, latestData }) {
   );
 }
 
-function Commercial({ analysis, posts }) {
+function Commercial({ analysis, posts, embedded = false }) {
   const commercial = analysis?.commercial;
   const evidenceMap = useMemo(() => new Map(posts.map((post) => [post.id, post])), [posts]);
 
@@ -271,7 +370,7 @@ function Commercial({ analysis, posts }) {
       <section className="hero commercialHero">
         <div>
           <p className="eyebrow">Commercial Decision</p>
-          <h1>원재료를 실행 가능한 사업 판단으로 정제</h1>
+          <h1>{embedded ? '상업적 판단에 필요한 실행 재료' : '원재료를 실행 가능한 사업 판단으로 정제'}</h1>
           <p className="summary">{commercial.summary}</p>
         </div>
         <div className={`verdictCard ${String(commercial.verdict || '').toLowerCase()}`}>
@@ -360,7 +459,7 @@ function Manual() {
     <>
       <section className="hero manualHero">
         <div>
-          <p className="eyebrow">Setup & Deploy</p>
+          <p className="eyebrow">How</p>
           <h1>각자 머신에 설치하고 GitHub Pages로 배포하는 방법</h1>
           <p className="summary">Reddit 로그인 쿠키와 Claude CLI가 있는 개인 머신에서 스케줄을 걸고, 생성된 JSON을 GitHub로 push하면 GitHub Pages가 자동으로 최신 정적 리포트를 배포합니다.</p>
         </div>
@@ -485,6 +584,19 @@ function Report({
         </section>
       )}
 
+      {analysis?.community_voice && (
+        <section className="voiceSummary">
+          <div>
+            <p className="eyebrow">Community Voice</p>
+            <h2>댓글 기반 정성평가</h2>
+            <p>{analysis.community_voice.summary}</p>
+          </div>
+          <div className={`sentimentPill ${analysis.community_voice.sentiment || 'unclear'}`}>
+            {analysis.community_voice.sentiment}
+          </div>
+        </section>
+      )}
+
       <section className="toolbar" aria-label="post controls">
         <label className="searchBox">
           <Search size={18} />
@@ -519,6 +631,14 @@ function Report({
               </div>
               <h2>{post.title}</h2>
               {post.text && <p>{post.text}</p>}
+              {post.discussion?.comments?.length > 0 && (
+                <div className="commentPreview">
+                  <strong>Top comments collected</strong>
+                  {post.discussion.comments.slice(0, 2).map((comment) => (
+                    <p key={comment.id}>{comment.body}</p>
+                  ))}
+                </div>
+              )}
               <div className="postStats">
                 <span>{numberFmt.format(post.score)} score</span>
                 <span>{numberFmt.format(post.comments)} comments</span>
