@@ -11,6 +11,8 @@ This repo separates the repeatable parts from the LLM part:
 
 For AI agents working on a new machine, read [`AGENTS.md`](./AGENTS.md) first. It explains the operating goal, file map, current limitations, and next implementation target.
 
+For a plain-language explanation of the moving parts, read [`docs/how-it-works.md`](./docs/how-it-works.md).
+
 ## Local setup
 
 ```bash
