@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+logs/
+data/runs/*.raw.json
+data/runs/*.prompt.txt
+data/runs/*.tmp
+__pycache__/

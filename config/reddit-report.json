@@ -1,0 +1,8 @@
+{
+  "subreddits": ["StableDiffusion"],
+  "sort": "top",
+  "time": "week",
+  "limit": 30,
+  "output": "public/data/latest.json",
+  "history_dir": "data/runs"
+}
