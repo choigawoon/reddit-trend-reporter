@@ -2,17 +2,21 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   BarChart3,
+  BriefcaseBusiness,
   CalendarClock,
   CheckCircle2,
   ExternalLink,
   Filter,
   Github,
   MessageCircle,
+  Rocket,
   RefreshCw,
   Search,
+  ShieldAlert,
   Sparkles,
   Star,
   Terminal,
+  TriangleAlert,
 } from 'lucide-react';
 import './styles.css';
 
@@ -29,6 +33,8 @@ function flattenPosts(data) {
 
 function App() {
   const [data, setData] = useState(null);
+  const [activeData, setActiveData] = useState(null);
+  const [reportIndex, setReportIndex] = useState(null);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [flair, setFlair] = useState('all');
@@ -41,11 +47,18 @@ function App() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then(setData)
+      .then((payload) => {
+        setData(payload);
+        setActiveData(payload);
+      })
       .catch((err) => setError(String(err)));
+    fetch(`${import.meta.env.BASE_URL}data/index.json`, { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : { reports: [] }))
+      .then(setReportIndex)
+      .catch(() => setReportIndex({ reports: [] }));
   }, []);
 
-  const posts = useMemo(() => flattenPosts(data), [data]);
+  const posts = useMemo(() => flattenPosts(activeData), [activeData]);
   const flairs = useMemo(() => {
     const values = new Set(posts.map((post) => post.flair || 'Unflaired'));
     return ['all', ...Array.from(values).sort()];
@@ -66,7 +79,7 @@ function App() {
     });
   }, [posts, query, flair, sort]);
 
-  const analysis = data?.analysis;
+  const analysis = activeData?.analysis;
   const topScore = posts[0]?.score || 0;
   const commentTotal = posts.reduce((sum, post) => sum + (post.comments || 0), 0);
 
@@ -74,7 +87,7 @@ function App() {
     return <main className="status">Failed to load report: {error}</main>;
   }
 
-  if (!data) {
+  if (!activeData) {
     return <main className="status">Loading report...</main>;
   }
 
@@ -83,14 +96,18 @@ function App() {
       <nav className="topNav">
         <button className={page === 'landing' ? 'active' : ''} onClick={() => setPage('landing')}>Product</button>
         <button className={page === 'report' ? 'active' : ''} onClick={() => setPage('report')}>Live Report</button>
-        <button className={page === 'manual' ? 'active' : ''} onClick={() => setPage('manual')}>Manual</button>
+        <button className={page === 'reports' ? 'active' : ''} onClick={() => setPage('reports')}>Reports</button>
+        <button className={page === 'commercial' ? 'active' : ''} onClick={() => setPage('commercial')}>Commercial</button>
+        <button className={page === 'manual' ? 'active' : ''} onClick={() => setPage('manual')}>Setup & Deploy</button>
       </nav>
 
-      {page === 'landing' && <Landing data={data} posts={posts} setPage={setPage} />}
+      {page === 'landing' && <Landing data={activeData} posts={posts} setPage={setPage} />}
+      {page === 'reports' && <Reports index={reportIndex} setActiveData={setActiveData} setPage={setPage} latestData={data} />}
+      {page === 'commercial' && <Commercial analysis={analysis} posts={posts} />}
       {page === 'manual' && <Manual />}
       {page === 'report' && (
         <Report
-          data={data}
+          data={activeData}
           posts={posts}
           analysis={analysis}
           filteredPosts={filteredPosts}
@@ -124,7 +141,9 @@ function Landing({ data, posts, setPage }) {
           </p>
           <div className="heroActions">
             <button onClick={() => setPage('report')}>리포트 보기</button>
-            <button className="secondary" onClick={() => setPage('manual')}>사용법 보기</button>
+            <button className="secondary" onClick={() => setPage('reports')}>개별 리포트</button>
+            <button className="secondary" onClick={() => setPage('commercial')}>상업성 판단</button>
+            <button className="secondary" onClick={() => setPage('manual')}>배포 방법</button>
           </div>
         </div>
         <div className="heroPreview" aria-label="live report preview">
@@ -182,14 +201,168 @@ function Landing({ data, posts, setPage }) {
   );
 }
 
+function Reports({ index, setActiveData, setPage, latestData }) {
+  const reports = index?.reports || [];
+
+  function openLatest() {
+    setActiveData(latestData);
+    setPage('report');
+  }
+
+  function openReport(item) {
+    fetch(`${import.meta.env.BASE_URL}data/${item.path}`, { cache: 'no-store' })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((payload) => {
+        setActiveData(payload);
+        setPage('report');
+      });
+  }
+
+  return (
+    <>
+      <section className="hero manualHero">
+        <div>
+          <p className="eyebrow">Report Archive</p>
+          <h1>실행별 리포트를 개별 페이지처럼 열어 비교</h1>
+          <p className="summary">스케줄이 돌 때마다 별도 JSON 리포트가 생성됩니다. 최신 리포트는 기본 화면에 요약되고, 과거 실행분은 여기서 개별로 열 수 있습니다.</p>
+          <div className="heroActions">
+            <button onClick={openLatest}>최신 리포트 열기</button>
+          </div>
+        </div>
+      </section>
+
+      <section className="reportArchive">
+        {reports.map((item) => (
+          <article className="reportItem" key={item.path}>
+            <div>
+              <span>{new Date(item.generated_at).toLocaleString()}</span>
+              <h2>{item.subreddits.map((subreddit) => `r/${subreddit}`).join(', ')}</h2>
+              <p>{item.sort}/{item.time} · {item.post_count} posts</p>
+            </div>
+            <button onClick={() => openReport(item)}>Open</button>
+          </article>
+        ))}
+      </section>
+    </>
+  );
+}
+
+function Commercial({ analysis, posts }) {
+  const commercial = analysis?.commercial;
+  const evidenceMap = useMemo(() => new Map(posts.map((post) => [post.id, post])), [posts]);
+
+  if (!commercial) {
+    return (
+      <section className="hero manualHero">
+        <div>
+          <p className="eyebrow">Commercial Decision</p>
+          <h1>상업 활용 판단 데이터가 아직 없습니다</h1>
+          <p className="summary">`npm run report` 또는 `npm run pipeline -- --allow-fallback`을 다시 실행하면 새 스키마로 상업성 평가가 생성됩니다.</p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <>
+      <section className="hero commercialHero">
+        <div>
+          <p className="eyebrow">Commercial Decision</p>
+          <h1>원재료를 실행 가능한 사업 판단으로 정제</h1>
+          <p className="summary">{commercial.summary}</p>
+        </div>
+        <div className={`verdictCard ${String(commercial.verdict || '').toLowerCase()}`}>
+          <span>Verdict</span>
+          <strong>{commercial.verdict}</strong>
+          <p>Confidence {Math.round((commercial.confidence || 0) * 100)}%</p>
+        </div>
+      </section>
+
+      <section className="commercialGrid">
+        {(commercial.opportunities || []).map((item) => (
+          <article className="opportunity" key={item.title}>
+            <div className="opportunityTop">
+              <BriefcaseBusiness size={20} />
+              <div>
+                <h2>{item.title}</h2>
+                <span>{item.customer}</span>
+              </div>
+            </div>
+            <p>{item.use_case}</p>
+            <dl>
+              <div>
+                <dt>수익화/효율화</dt>
+                <dd>{item.monetization}</dd>
+              </div>
+              <div>
+                <dt>실행 난이도</dt>
+                <dd>{item.effort}</dd>
+              </div>
+              <div>
+                <dt>리스크</dt>
+                <dd>{item.risk}</dd>
+              </div>
+            </dl>
+            <Evidence ids={item.evidence_post_ids || []} evidenceMap={evidenceMap} />
+          </article>
+        ))}
+      </section>
+
+      <section className="decisionGrid">
+        <DecisionPanel icon={<Rocket size={19} />} title="Do Now" items={commercial.do_now || []} />
+        <DecisionPanel icon={<Search size={19} />} title="Watch" items={commercial.watch || []} />
+        <DecisionPanel icon={<ShieldAlert size={19} />} title="Avoid / Review" items={commercial.avoid_or_review || []} warning />
+      </section>
+
+      <Panel title="Decision Notes">
+        <ul className="compactList">{(commercial.decision_notes || []).map((item) => <li key={item}>{item}</li>)}</ul>
+      </Panel>
+    </>
+  );
+}
+
+function Evidence({ ids, evidenceMap }) {
+  if (!ids.length) return null;
+  return (
+    <div className="evidence">
+      <strong>Evidence</strong>
+      {ids.map((id) => {
+        const post = evidenceMap.get(id);
+        return (
+          <a key={id} href={post?.reddit_url || '#'} target="_blank" rel="noreferrer">
+            {post ? `#${post.rank} ${post.title}` : id}
+            <ExternalLink size={13} />
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
+function DecisionPanel({ icon, title, items, warning = false }) {
+  return (
+    <section className={`decisionPanel ${warning ? 'warning' : ''}`}>
+      <h2>{icon}{title}</h2>
+      <ul>
+        {items.map((item) => (
+          <li key={item}>{warning && <TriangleAlert size={16} />}{item}</li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function Manual() {
   return (
     <>
       <section className="hero manualHero">
         <div>
-          <p className="eyebrow">User Manual</p>
-          <h1>다른 머신에서 실행하는 최소 운영 절차</h1>
-          <p className="summary">Reddit 로그인 쿠키와 Claude CLI가 있는 머신에서 스케줄을 걸고, 결과 JSON만 GitHub로 push하면 정적 페이지가 갱신됩니다.</p>
+          <p className="eyebrow">Setup & Deploy</p>
+          <h1>각자 머신에 설치하고 GitHub Pages로 배포하는 방법</h1>
+          <p className="summary">Reddit 로그인 쿠키와 Claude CLI가 있는 개인 머신에서 스케줄을 걸고, 생성된 JSON을 GitHub로 push하면 GitHub Pages가 자동으로 최신 정적 리포트를 배포합니다.</p>
         </div>
       </section>
 
@@ -218,12 +391,19 @@ npm run preview`}</CodeBlock>
         <Panel title="4. 매일 실행 cron">
           <CodeBlock>{`0 9 * * * cd /path/to/reddit-trend-reporter && npm run pipeline -- --allow-fallback >> logs/pipeline.log 2>&1`}</CodeBlock>
         </Panel>
-        <Panel title="5. GitHub Pages 갱신">
+        <Panel title="5. GitHub Pages 배포">
           <CodeBlock>{`git pull --ff-only
 npm run pipeline -- --allow-fallback
-git add public/data/latest.json data/runs
+git add public/data data/runs
 git commit -m "Update Reddit trend report"
 git push`}</CodeBlock>
+        </Panel>
+        <Panel title="6. 자기 repo로 배포">
+          <CodeBlock>{`gh repo create <github-id>/reddit-trend-reporter --public --source=. --remote=origin --push
+gh api --method POST repos/<github-id>/reddit-trend-reporter/pages -f build_type=workflow
+
+# 배포 URL
+https://<github-id>.github.io/reddit-trend-reporter/`}</CodeBlock>
         </Panel>
         <Panel title="운영 체크">
           <ul className="checkList">

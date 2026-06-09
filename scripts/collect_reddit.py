@@ -121,8 +121,38 @@ def write_outputs(report: dict[str, Any], config: dict[str, Any]) -> None:
     stamp = report["generated_at"].replace(":", "").replace("-", "").replace("+0000", "Z")
     history_path = history_dir / f"{stamp}.json"
     history_path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
+
+    public_reports_dir = ROOT / config.get("public_reports_dir", "public/data/reports")
+    public_reports_dir.mkdir(parents=True, exist_ok=True)
+    public_report_path = public_reports_dir / f"{stamp}.json"
+    public_report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
+
+    index_path = ROOT / config.get("public_index", "public/data/index.json")
+    index_path.parent.mkdir(parents=True, exist_ok=True)
+    if index_path.exists():
+        try:
+            index = json.loads(index_path.read_text())
+        except json.JSONDecodeError:
+            index = {"reports": []}
+    else:
+        index = {"reports": []}
+    entry = {
+        "generated_at": report["generated_at"],
+        "path": f"reports/{public_report_path.name}",
+        "subreddits": report["query"]["subreddits"],
+        "sort": report["query"]["sort"],
+        "time": report["query"]["time"],
+        "post_count": sum(sub["post_count"] for sub in report["subreddits"]),
+    }
+    reports = [item for item in index.get("reports", []) if item.get("path") != entry["path"]]
+    reports.insert(0, entry)
+    index["reports"] = reports[:100]
+    index["latest"] = entry
+    index_path.write_text(json.dumps(index, indent=2, ensure_ascii=False) + "\n")
     print(f"wrote {output.relative_to(ROOT)}")
     print(f"wrote {history_path.relative_to(ROOT)}")
+    print(f"wrote {public_report_path.relative_to(ROOT)}")
+    print(f"wrote {index_path.relative_to(ROOT)}")
 
 
 def main() -> None:

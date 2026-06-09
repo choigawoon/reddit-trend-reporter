@@ -24,11 +24,31 @@ Return only valid JSON with this shape:
   "signals": [
     {"label": "signal", "detail": "Korean detail"}
   ],
+  "commercial": {
+    "verdict": "Go | Watch | Avoid",
+    "confidence": 0.0,
+    "summary": "Korean decision summary for commercial use",
+    "opportunities": [
+      {
+        "title": "commercial opportunity",
+        "customer": "who would pay or use it",
+        "use_case": "what they can do with it",
+        "monetization": "how this could become revenue or cost saving",
+        "effort": "Low | Medium | High",
+        "risk": "Low | Medium | High",
+        "evidence_post_ids": ["..."]
+      }
+    ],
+    "do_now": ["Korean action item"],
+    "watch": ["Korean thing to monitor"],
+    "avoid_or_review": ["Korean caveat, legal/IP/safety/brand concern"],
+    "decision_notes": ["Korean note grounded in snapshot"]
+  },
   "watch_next": ["Korean item"],
   "risks_or_caveats": ["Korean caveat"]
 }
 
-Use only the provided snapshot. Do not invent external facts.
+Commercial means practical business/product/content use. Be conservative about IP, licensing, safety-filter bypass, user privacy, and brand risk. Use only the provided snapshot. Do not invent external facts.
 """
 
 
@@ -92,6 +112,27 @@ def fallback_analysis(snapshot: dict[str, Any]) -> dict[str, Any]:
             {"label": "top_posts", "detail": f"분석 대상 게시글 {len(posts)}개"},
             {"label": "keyword_fallback", "detail": "LLM 실패 시에도 웹 리포트가 비지 않도록 기본 집계를 제공합니다."},
         ],
+        "commercial": {
+            "verdict": "Watch",
+            "confidence": 0.45,
+            "summary": "LLM 분석 실패로 보수적인 상업성 판단을 제공합니다. 반복 등장 키워드는 기회 신호지만, 실제 사용 전 모델 라이선스, IP 사용 가능성, 안전 필터 우회 여부를 별도로 확인해야 합니다.",
+            "opportunities": [
+                {
+                    "title": f"{name} 기반 리서치 후보",
+                    "customer": "AI 콘텐츠 제작자, 자동화 도구 사용자, 내부 리서치 팀",
+                    "use_case": f"상위 게시글에서 반복 언급된 {name} 흐름을 제품/콘텐츠 아이디어 후보로 검토",
+                    "monetization": "튜토리얼, 워크플로우 템플릿, 내부 생산성 자동화, 컨설팅 소재",
+                    "effort": "Medium",
+                    "risk": "Medium",
+                    "evidence_post_ids": [p["id"] for p in posts if name in (p.get("title") or "").lower()][:5],
+                }
+                for name, _count in top_terms[:3]
+            ],
+            "do_now": ["상위 포스트별 라이선스/IP/상업 이용 조건을 확인", "반복 키워드별 1페이지 사업 가설로 정리"],
+            "watch": ["다음 수집에서 같은 키워드가 유지되는지 확인", "댓글 수가 빠르게 늘어나는 글을 우선 검토"],
+            "avoid_or_review": ["안전 필터 우회, 유명 IP 재현, 저작권 소재 활용은 상업 사용 전 검토 필요"],
+            "decision_notes": ["fallback 분석은 제목 기반이라 상업성 판단의 신뢰도가 제한적입니다."],
+        },
         "watch_next": ["다음 실행에서 Claude 분석이 성공하는지 확인", "반복 등장 키워드의 댓글 증가 추세 확인"],
         "risks_or_caveats": ["이 fallback은 제목 기반 집계라 맥락 분석이 제한적입니다."],
     }
@@ -114,7 +155,27 @@ def main() -> None:
         analysis = fallback_analysis(snapshot)
     data["analysis"] = analysis
     args.input.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    sync_public_report(args.input, data)
     print(f"updated {args.input.relative_to(ROOT)}")
+
+
+def sync_public_report(input_path: Path, data: dict[str, Any]) -> None:
+    if input_path != DEFAULT_INPUT:
+        return
+    index_path = ROOT / "public" / "data" / "index.json"
+    if not index_path.exists():
+        return
+    try:
+        index = json.loads(index_path.read_text())
+    except json.JSONDecodeError:
+        return
+    latest = index.get("latest") or {}
+    report_path = latest.get("path")
+    if not report_path:
+        return
+    target = ROOT / "public" / "data" / report_path
+    if target.exists():
+        target.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
 
 
 if __name__ == "__main__":

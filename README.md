@@ -6,7 +6,7 @@ This repo separates the repeatable parts from the LLM part:
 
 - `scripts/collect_reddit.py` collects subreddit listings through `rdt-cli`.
 - `scripts/run_claude_report.py` sends a compact snapshot to `claude -p` and writes structured analysis JSON.
-- `src/` renders `public/data/latest.json` as an interactive Vite/React static page.
+- `src/` renders `public/data/latest.json`, report archives, and commercial decision notes as an interactive Vite/React static page.
 - `scripts/pipeline.py` runs collect -> Claude report -> static build.
 
 ## Local setup
@@ -46,6 +46,13 @@ If Claude fails but you still want a build artifact:
 npm run pipeline -- --allow-fallback
 ```
 
+This updates:
+
+- `public/data/latest.json` for the latest one-page summary.
+- `public/data/index.json` for the report archive list.
+- `public/data/reports/*.json` for individual report snapshots.
+- `data/runs/*.json` for local raw history.
+
 ## Configure targets
 
 Edit `config/reddit-report.json`.
@@ -82,7 +89,7 @@ If you want the scheduled machine to publish results back to GitHub Pages:
 ```bash
 git pull --ff-only
 npm run pipeline -- --allow-fallback
-git add public/data/latest.json data/runs
+git add public/data data/runs
 git commit -m "Update Reddit trend report"
 git push
 ```
@@ -92,6 +99,14 @@ git push
 This repo includes a GitHub Actions workflow that builds the Vite app and publishes `dist/` to GitHub Pages on every push to `main`.
 
 The workflow does not collect Reddit data, because Reddit cookies and Claude credentials should live on the scheduled machine. The scheduled machine should commit updated JSON data back to the repo, then GitHub Pages will rebuild.
+
+The published app has four operating surfaces:
+
+- `Product`: short landing page for explaining the product.
+- `Live Report`: the currently selected report, defaulting to latest.
+- `Reports`: individual report snapshots created by scheduled runs.
+- `Commercial`: conservative business-use evaluation from the collected posts.
+- `Setup & Deploy`: manual for installing on another machine and publishing to GitHub Pages.
 
 ## Development
 

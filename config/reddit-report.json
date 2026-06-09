@@ -4,5 +4,7 @@
   "time": "week",
   "limit": 30,
   "output": "public/data/latest.json",
-  "history_dir": "data/runs"
+  "history_dir": "data/runs",
+  "public_reports_dir": "public/data/reports",
+  "public_index": "public/data/index.json"
 }

@@ -1,0 +1,24 @@
+{
+  "reports": [
+    {
+      "generated_at": "2026-06-09T14:37:02+00:00",
+      "path": "reports/20260609T143702Z.json",
+      "subreddits": [
+        "StableDiffusion"
+      ],
+      "sort": "top",
+      "time": "week",
+      "post_count": 30
+    }
+  ],
+  "latest": {
+    "generated_at": "2026-06-09T14:37:02+00:00",
+    "path": "reports/20260609T143702Z.json",
+    "subreddits": [
+      "StableDiffusion"
+    ],
+    "sort": "top",
+    "time": "week",
+    "post_count": 30
+  }
+}
