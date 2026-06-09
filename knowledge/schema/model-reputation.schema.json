@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ModelReputation",
+  "type": "object",
+  "required": [
+    "slug",
+    "display_name",
+    "aliases",
+    "category",
+    "current_sentiment",
+    "commercial_readiness",
+    "strengths",
+    "weaknesses",
+    "risks",
+    "evidence",
+    "last_updated"
+  ],
+  "properties": {
+    "slug": { "type": "string" },
+    "display_name": { "type": "string" },
+    "aliases": { "type": "array", "items": { "type": "string" } },
+    "category": { "type": "string" },
+    "current_sentiment": {
+      "type": "object",
+      "required": ["label", "confidence", "summary"],
+      "properties": {
+        "label": { "type": "string", "enum": ["positive", "mixed", "negative", "emerging", "unknown"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "summary": { "type": "string" }
+      }
+    },
+    "commercial_readiness": {
+      "type": "object",
+      "required": ["label", "confidence", "summary"],
+      "properties": {
+        "label": { "type": "string", "enum": ["ready", "pilot", "watch", "avoid", "unknown"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "summary": { "type": "string" }
+      }
+    },
+    "strengths": { "type": "array", "items": { "type": "string" } },
+    "weaknesses": { "type": "array", "items": { "type": "string" } },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "commercial_use_cases": { "type": "array", "items": { "type": "string" } },
+    "open_questions": { "type": "array", "items": { "type": "string" } },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["report_generated_at", "post_ids", "note"],
+        "properties": {
+          "report_generated_at": { "type": "string" },
+          "post_ids": { "type": "array", "items": { "type": "string" } },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "last_updated": { "type": "string" }
+  }
+}

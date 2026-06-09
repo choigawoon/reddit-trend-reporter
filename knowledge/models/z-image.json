@@ -1,0 +1,44 @@
+{
+  "slug": "z-image",
+  "display_name": "Z-Image",
+  "aliases": ["Z-Image", "Z-Image Turbo", "ZiT"],
+  "category": "image generation model",
+  "current_sentiment": {
+    "label": "positive",
+    "confidence": 0.45,
+    "summary": "Community references suggest Z-Image Turbo is respected for anime and image quality, with optimization work around samplers and schedulers."
+  },
+  "commercial_readiness": {
+    "label": "watch",
+    "confidence": 0.4,
+    "summary": "Promising but needs more comment-level evidence and licensing review before commercial judgment."
+  },
+  "strengths": [
+    "Community optimization work suggests active practical use.",
+    "Reportedly strong anime output."
+  ],
+  "weaknesses": [
+    "Less dominant than Ideogram 4.0 in the current snapshot.",
+    "Commercial readiness is not established from current evidence."
+  ],
+  "risks": [
+    "License and allowed commercial use need confirmation.",
+    "Output quality may depend on sampler/scheduler tuning."
+  ],
+  "commercial_use_cases": [
+    "Anime visual prototyping.",
+    "Benchmark comparison against other local image models."
+  ],
+  "open_questions": [
+    "Which sampler/scheduler settings are best for repeatable commercial workflows?",
+    "What are the license constraints?"
+  ],
+  "evidence": [
+    {
+      "report_generated_at": "2026-06-09T14:37:02+00:00",
+      "post_ids": ["1tv6et1", "1twvlja"],
+      "note": "Snapshot includes sampler/scheduler comparison and anime quality posts."
+    }
+  ],
+  "last_updated": "2026-06-09"
+}

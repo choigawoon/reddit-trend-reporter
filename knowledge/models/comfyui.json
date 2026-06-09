@@ -1,0 +1,47 @@
+{
+  "slug": "comfyui",
+  "display_name": "ComfyUI / Comfy Desktop",
+  "aliases": ["ComfyUI", "Comfy", "Comfy Desktop", "ComfyUI Desktop"],
+  "category": "workflow/runtime tool",
+  "current_sentiment": {
+    "label": "mixed",
+    "confidence": 0.55,
+    "summary": "ComfyUI remains central to local model adoption, but users continue to express friction around workflow complexity, installation, custom nodes, and compatibility."
+  },
+  "commercial_readiness": {
+    "label": "pilot",
+    "confidence": 0.5,
+    "summary": "Useful as an internal workflow runtime, but commercial teams should standardize versions, dependencies, and approved workflows before scaling."
+  },
+  "strengths": [
+    "Central execution environment for local image generation workflows.",
+    "New Comfy Desktop distribution may reduce setup friction.",
+    "Strong ecosystem support for new models like Ideogram 4.0."
+  ],
+  "weaknesses": [
+    "Workflow graphs can be intimidating for non-technical users.",
+    "Custom node and dependency management remain operational risks.",
+    "Users worry about breaking existing workflows."
+  ],
+  "risks": [
+    "Uncontrolled custom nodes can create security and reproducibility issues.",
+    "Workflow updates can break production pipelines."
+  ],
+  "commercial_use_cases": [
+    "Internal creative automation pipelines.",
+    "Repeatable local image generation workflows.",
+    "Model evaluation and prompt engineering lab."
+  ],
+  "open_questions": [
+    "Can Comfy Desktop reduce operational friction enough for less technical teams?",
+    "What governance is needed for custom nodes in a business setting?"
+  ],
+  "evidence": [
+    {
+      "report_generated_at": "2026-06-09T14:37:02+00:00",
+      "post_ids": ["1tx4wsm", "1tw5b2e", "1tvtu2u"],
+      "note": "Snapshot includes Comfy Desktop announcement, workflow complexity memes, and Ideogram 4.0 ComfyUI support."
+    }
+  ],
+  "last_updated": "2026-06-09"
+}

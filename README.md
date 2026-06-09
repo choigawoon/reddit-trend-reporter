@@ -9,6 +9,8 @@ This repo separates the repeatable parts from the LLM part:
 - `src/` renders `public/data/latest.json`, report archives, and commercial decision notes as an interactive Vite/React static page.
 - `scripts/pipeline.py` runs collect -> Claude report -> static build.
 
+For AI agents working on a new machine, read [`AGENTS.md`](./AGENTS.md) first. It explains the operating goal, file map, current limitations, and next implementation target.
+
 ## Local setup
 
 ```bash
@@ -107,6 +109,16 @@ The published app has four operating surfaces:
 - `Reports`: individual report snapshots created by scheduled runs.
 - `Commercial`: conservative business-use evaluation from the collected posts.
 - `Setup & Deploy`: manual for installing on another machine and publishing to GitHub Pages.
+
+## Long-Lived Model Knowledge
+
+The repo includes a lightweight knowledge base for model/tool reputation:
+
+- `knowledge/models/*.json`: cumulative qualitative notes by model name.
+- `knowledge/schema/model-reputation.schema.json`: expected shape.
+- `docs/roadmap.md`: next steps for comment-level collection and automatic reputation updates.
+
+This is intended to travel with the repo. A new machine or AI agent can clone the repo, read `AGENTS.md`, and continue from the current context instead of relying on chat history.
 
 ## Development
 

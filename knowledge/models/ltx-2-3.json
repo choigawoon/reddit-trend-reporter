@@ -1,0 +1,39 @@
+{
+  "slug": "ltx-2-3",
+  "display_name": "LTX 2.3",
+  "aliases": ["LTX", "LTX 2.3"],
+  "category": "generative media model/workflow",
+  "current_sentiment": {
+    "label": "emerging",
+    "confidence": 0.35,
+    "summary": "The current snapshot has limited but notable workflow discussion around LTX 2.3 and seed hunting."
+  },
+  "commercial_readiness": {
+    "label": "unknown",
+    "confidence": 0.25,
+    "summary": "Insufficient evidence in the current report to make a commercial readiness call."
+  },
+  "strengths": [
+    "Workflow-oriented discussion suggests practical experimentation."
+  ],
+  "weaknesses": [
+    "Too little evidence from current top posts.",
+    "Needs comment-level detail before reputation can be assessed."
+  ],
+  "risks": [
+    "Unknown license and production constraints from current evidence."
+  ],
+  "commercial_use_cases": [],
+  "open_questions": [
+    "What output category and production use case is LTX 2.3 strongest for?",
+    "What do users complain about in comments?"
+  ],
+  "evidence": [
+    {
+      "report_generated_at": "2026-06-09T14:37:02+00:00",
+      "post_ids": ["1txtrtr"],
+      "note": "One top post discusses LTX 2.3 workflow and seed hunting."
+    }
+  ],
+  "last_updated": "2026-06-09"
+}

@@ -1,0 +1,46 @@
+{
+  "slug": "anima",
+  "display_name": "Anima",
+  "aliases": ["Anima", "WAI Anima", "Photanima"],
+  "category": "image generation model/workflow family",
+  "current_sentiment": {
+    "label": "positive",
+    "confidence": 0.55,
+    "summary": "Community posts show enthusiasm for multi-character and anime/character scene generation, with some acknowledged issues around bleeding and anatomy."
+  },
+  "commercial_readiness": {
+    "label": "watch",
+    "confidence": 0.45,
+    "summary": "Potentially useful for character illustration workflows, but quality consistency and licensing details need more evidence before commercial adoption."
+  },
+  "strengths": [
+    "Strong visible interest for multi-character generations.",
+    "Fast showcase workflows such as Photanima are attracting attention.",
+    "Useful candidate for character-heavy visual ideation."
+  ],
+  "weaknesses": [
+    "Reported bleeding and anatomy issues.",
+    "Evidence base is thinner than Ideogram 4.0 in the current snapshot."
+  ],
+  "risks": [
+    "Character/IP style usage may require review.",
+    "Workflow and model licensing details need confirmation."
+  ],
+  "commercial_use_cases": [
+    "Character concept ideation.",
+    "Anime-style visual exploration.",
+    "Internal creative prototyping."
+  ],
+  "open_questions": [
+    "What are the commercial license terms?",
+    "How often do bleeding/anatomy issues appear in production prompts?"
+  ],
+  "evidence": [
+    {
+      "report_generated_at": "2026-06-09T14:37:02+00:00",
+      "post_ids": ["1tvv4j1", "1tuy3ye", "1u04320"],
+      "note": "Top posts highlight Anima and Photanima quality, speed, and multi-character capability while acknowledging quality artifacts."
+    }
+  ],
+  "last_updated": "2026-06-09"
+}

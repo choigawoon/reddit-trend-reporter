@@ -1,0 +1,51 @@
+{
+  "slug": "ideogram-4",
+  "display_name": "Ideogram 4.0",
+  "aliases": ["Ideogram", "Ideogram 4", "Ideogram 4.0", "Ideogram4"],
+  "category": "text-to-image open-weight model",
+  "current_sentiment": {
+    "label": "mixed",
+    "confidence": 0.65,
+    "summary": "Community attention is very high and many posts praise text/layout control, character/IP knowledge, and local ComfyUI workflows. Sentiment is constrained by safety filter friction, IP risk, and reports of watermark/data provenance concerns."
+  },
+  "commercial_readiness": {
+    "label": "pilot",
+    "confidence": 0.55,
+    "summary": "Promising for controlled pilots around layout-heavy design assets and local generation, but commercial use should avoid IP recreation and safety-filter bypass workflows until licensing and policy risks are reviewed."
+  },
+  "strengths": [
+    "Strong text and layout control using structured JSON prompts and bounding boxes.",
+    "High community excitement for local ComfyUI use.",
+    "Reportedly strong character and IP knowledge without LoRAs.",
+    "Potential for posters, ads, social graphics, comics, and design mockups."
+  ],
+  "weaknesses": [
+    "JSON/bounding-box prompting can be cumbersome without helper tools.",
+    "Safety filter behavior is a major friction point.",
+    "Some users report mixed results or overhype depending on workflow."
+  ],
+  "risks": [
+    "Commercial use of generated famous IP or characters may create copyright/trademark risk.",
+    "Safety-filter bypass workflows may create legal, brand, and platform policy risk.",
+    "Reports of unprompted Gemini watermark generation raise data provenance questions."
+  ],
+  "commercial_use_cases": [
+    "Layout-heavy marketing graphics with owned brand assets.",
+    "Internal design ideation and poster/comic mockups.",
+    "Prompt builder or workflow tooling for structured JSON prompts.",
+    "Private/local generation where API privacy or cost is a concern."
+  ],
+  "open_questions": [
+    "What are the exact license terms and commercial use restrictions for each checkpoint?",
+    "How stable is output quality across non-IP commercial prompts?",
+    "Can teams use it without relying on safety-filter bypasses?"
+  ],
+  "evidence": [
+    {
+      "report_generated_at": "2026-06-09T14:37:02+00:00",
+      "post_ids": ["1tvtu2u", "1u0e1g0", "1twv7ec", "1tzwl34", "1twqyrf"],
+      "note": "Top weekly r/StableDiffusion posts were dominated by Ideogram 4.0 open-weight release, JSON prompting, local ComfyUI usage, and safety filter debate."
+    }
+  ],
+  "last_updated": "2026-06-09"
+}
