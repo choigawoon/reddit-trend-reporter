@@ -36,7 +36,7 @@ function App() {
   const [page, setPage] = useState('landing');
 
   useEffect(() => {
-    fetch('/data/latest.json', { cache: 'no-store' })
+    fetch(`${import.meta.env.BASE_URL}data/latest.json`, { cache: 'no-store' })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
