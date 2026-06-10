@@ -4,12 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "setup": "bash scripts/setup.sh",
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "collect": "python3 scripts/collect_reddit.py",
-    "report": "python3 scripts/run_claude_report.py",
-    "pipeline": "python3 scripts/pipeline.py"
+    "collect": "python3 -m reddit_trend_reporter collect",
+    "report": "python3 -m reddit_trend_reporter report",
+    "pipeline": "python3 -m reddit_trend_reporter pipeline --build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.1",

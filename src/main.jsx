@@ -17,6 +17,7 @@ import {
   Sparkles,
   Star,
   Terminal,
+  TrendingUp,
   TriangleAlert,
 } from 'lucide-react';
 import './styles.css';
@@ -26,6 +27,15 @@ const numberFmt = new Intl.NumberFormat('en-US');
 function flattenPosts(data) {
   return (data?.subreddits || []).flatMap((sub) =>
     (sub.posts || []).map((post) => ({
+      ...post,
+      subredditName: sub.name,
+    })),
+  );
+}
+
+function flattenTrending(data) {
+  return (data?.subreddits || []).flatMap((sub) =>
+    (sub.trending?.posts || []).map((post) => ({
       ...post,
       subredditName: sub.name,
     })),
@@ -60,6 +70,7 @@ function App() {
   }, []);
 
   const posts = useMemo(() => flattenPosts(activeData), [activeData]);
+  const trendingPosts = useMemo(() => flattenTrending(activeData), [activeData]);
   const flairs = useMemo(() => {
     const values = new Set(posts.map((post) => post.flair || 'Unflaired'));
     return ['all', ...Array.from(values).sort()];
@@ -110,6 +121,7 @@ function App() {
         <Report
           data={activeData}
           posts={posts}
+          trendingPosts={trendingPosts}
           analysis={analysis}
           filteredPosts={filteredPosts}
           flairs={flairs}
@@ -137,7 +149,7 @@ function Landing({ data, posts, setPage }) {
           <p className="eyebrow">Scheduled Reddit Intelligence</p>
           <h1>커뮤니티에서 터지는 신호를 매일 리포트로 바꾸는 정적 웹 대시보드</h1>
           <p className="summary">
-            Reddit 서브레딧의 top posts를 자동 수집하고 Claude가 핵심 이슈를 요약합니다.
+            Reddit 서브레딧의 top·rising 글과 상위 댓글을 매일 자동 수집하고, Claude가 트렌드·커뮤니티 반응·상업성 판단을 JSON으로 정리합니다.
             결과는 GitHub Pages에 올릴 수 있는 정적 웹페이지로 남아 팀이 링크 하나로 확인합니다.
           </p>
           <div className="heroActions">
@@ -193,8 +205,8 @@ function Landing({ data, posts, setPage }) {
       <section className="flowBand">
         <h2>작동 방식</h2>
         <div className="flowSteps">
-          <div><strong>1. Collect</strong><span>rdt-cli로 subreddit top list 수집</span></div>
-          <div><strong>2. Analyze</strong><span>claude -p가 핵심 이슈와 근거를 JSON으로 작성</span></div>
+          <div><strong>1. Collect</strong><span>rdt-cli로 top·rising 글과 상위 댓글 수집</span></div>
+          <div><strong>2. Analyze</strong><span>claude -p가 트렌드·커뮤니티 반응·상업성을 JSON으로 작성</span></div>
           <div><strong>3. Publish</strong><span>Vite 정적 페이지를 GitHub Pages로 배포</span></div>
         </div>
       </section>
@@ -469,18 +481,21 @@ function Manual() {
         <Panel title="1. 설치">
           <CodeBlock>{`git clone <repo-url>
 cd reddit-trend-reporter
-npm install
-uv tool install rdt-cli
+npm run setup   # npm + uv + rdt-cli 자동 설치, claude 확인
 rdt status --json
-claude --version`}</CodeBlock>
+
+# 데이터 파이프라인만 어디서나 쓰려면 (rdt-cli 동봉)
+uv tool install git+<repo-url>
+reddit-report --version`}</CodeBlock>
         </Panel>
         <Panel title="2. 수집 대상 수정">
           <CodeBlock>{`# config/reddit-report.json
 {
   "subreddits": ["StableDiffusion"],
   "sort": "top",
-  "time": "week",
-  "limit": 30
+  "time": "day",
+  "limit": 30,
+  "trending": { "sort": "rising", "limit": 15 }
 }`}</CodeBlock>
         </Panel>
         <Panel title="3. 한번 실행">
@@ -519,6 +534,7 @@ https://<github-id>.github.io/reddit-trend-reporter/`}</CodeBlock>
 function Report({
   data,
   posts,
+  trendingPosts = [],
   analysis,
   filteredPosts,
   flairs,
@@ -531,6 +547,7 @@ function Report({
   topScore,
   commentTotal,
 }) {
+  const topIds = useMemo(() => new Set(posts.map((post) => post.id)), [posts]);
   return (
     <>
       <section className="hero">
@@ -593,6 +610,31 @@ function Report({
           </div>
           <div className={`sentimentPill ${analysis.community_voice.sentiment || 'unclear'}`}>
             {analysis.community_voice.sentiment}
+          </div>
+        </section>
+      )}
+
+      {trendingPosts.length > 0 && (
+        <section className="trending" aria-label="trending posts">
+          <div className="trendingHead">
+            <TrendingUp size={18} />
+            <h2>Trending · {data.query?.trending?.sort || 'rising'}</h2>
+            <span>지금 빠르게 오르는 글 (top과 별개로 떠오르는 신호)</span>
+          </div>
+          <div className="trendingList">
+            {trendingPosts.slice(0, 12).map((post) => (
+              <a className="trendingItem" key={`trend-${post.id}`} href={post.reddit_url} target="_blank" rel="noreferrer">
+                <span className="trendingRank"><TrendingUp size={13} />{post.rank}</span>
+                <div className="trendingBody">
+                  <strong>{post.title}</strong>
+                  <span className="trendingMeta">
+                    r/{post.subredditName} · {numberFmt.format(post.score)} score · {numberFmt.format(post.comments)} comments
+                    {!topIds.has(post.id) && <em className="trendingNew">NEW</em>}
+                  </span>
+                </div>
+                <ExternalLink size={14} />
+              </a>
+            ))}
           </div>
         </section>
       )}

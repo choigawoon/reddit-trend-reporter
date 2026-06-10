@@ -38,9 +38,11 @@ Not yet implemented:
 ## Important Files
 
 - `config/reddit-report.json`: collection target settings.
-- `scripts/collect_reddit.py`: repeatable Reddit listing collector.
-- `scripts/run_claude_report.py`: LLM report generator. Keep prompt/schema changes here.
-- `scripts/pipeline.py`: collect -> report -> build.
+- `pyproject.toml`: packages the pipeline as the `reddit-report` CLI (depends on `rdt-cli`).
+- `reddit_trend_reporter/collect.py`: repeatable Reddit listing collector + rdt resolution.
+- `reddit_trend_reporter/report.py`: LLM report generator. Keep prompt/schema changes here.
+- `reddit_trend_reporter/pipeline.py` + `cli.py`: collect -> report (-> optional build) and CLI wiring.
+- `scripts/*.py`: thin backward-compat shims that call the package.
 - `src/main.jsx`: React UI.
 - `src/styles.css`: styling.
 - `public/data/latest.json`: current published report.

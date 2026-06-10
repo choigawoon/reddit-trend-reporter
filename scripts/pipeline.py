@@ -1,33 +1,12 @@
 #!/usr/bin/env python3
-from __future__ import annotations
-
-import argparse
-import subprocess
+"""Deprecated shim. Prefer `reddit-report pipeline --build`
+(or `python3 -m reddit_trend_reporter pipeline --build`). Kept for backward
+compatibility with docs/cron that call `python3 scripts/pipeline.py`."""
+import sys
 from pathlib import Path
 
-
-ROOT = Path(__file__).resolve().parents[1]
-
-
-def run(cmd: list[str]) -> None:
-    print("+", " ".join(cmd))
-    subprocess.check_call(cmd, cwd=ROOT)
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Run collection, optional Claude analysis, and static build.")
-    parser.add_argument("--skip-llm", action="store_true")
-    parser.add_argument("--allow-fallback", action="store_true")
-    args = parser.parse_args()
-
-    run(["python3", "scripts/collect_reddit.py"])
-    if not args.skip_llm:
-        report_cmd = ["python3", "scripts/run_claude_report.py"]
-        if args.allow_fallback:
-            report_cmd.append("--allow-fallback")
-        run(report_cmd)
-    run(["npm", "run", "build"])
-
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from reddit_trend_reporter.cli import run_pipeline
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(run_pipeline(sys.argv[1:]))

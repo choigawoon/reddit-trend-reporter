@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "reddit-trend-reporter"
+version = "0.1.0"
+description = "Collect Reddit listings via rdt-cli and build a Claude trend report as JSON"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = ["reddit", "trend", "report", "claude", "cli"]
+classifiers = [
+    "Environment :: Console",
+    "Programming Language :: Python :: 3",
+    "Topic :: Utilities",
+]
+# rdt-cli is co-installed so `uv tool install reddit-trend-reporter` brings the
+# Reddit collector along (its `rdt` binary lands next to our interpreter).
+# The `claude` CLI and Node/Vite frontend are intentionally NOT Python deps.
+dependencies = [
+    "rdt-cli>=0.4",
+]
+
+[project.scripts]
+reddit-report = "reddit_trend_reporter.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["reddit_trend_reporter"]

@@ -1,6 +1,26 @@
 {
   "reports": [
     {
+      "generated_at": "2026-06-10T12:24:16+00:00",
+      "path": "reports/20260610T122416Z.json",
+      "subreddits": [
+        "StableDiffusion"
+      ],
+      "sort": "top",
+      "time": "day",
+      "post_count": 30
+    },
+    {
+      "generated_at": "2026-06-10T07:07:48+00:00",
+      "path": "reports/20260610T070748Z.json",
+      "subreddits": [
+        "StableDiffusion"
+      ],
+      "sort": "top",
+      "time": "week",
+      "post_count": 30
+    },
+    {
       "generated_at": "2026-06-09T15:15:42+00:00",
       "path": "reports/20260609T151542Z.json",
       "subreddits": [
@@ -22,13 +42,13 @@
     }
   ],
   "latest": {
-    "generated_at": "2026-06-09T15:15:42+00:00",
-    "path": "reports/20260609T151542Z.json",
+    "generated_at": "2026-06-10T12:24:16+00:00",
+    "path": "reports/20260610T122416Z.json",
     "subreddits": [
       "StableDiffusion"
     ],
     "sort": "top",
-    "time": "week",
+    "time": "day",
     "post_count": 30
   }
 }
