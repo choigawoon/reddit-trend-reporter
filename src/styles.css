@@ -956,3 +956,85 @@ select {
   border-radius: 4px;
   padding: 1px 6px;
 }
+
+.profileNav {
+  display: flex;
+  gap: 8px;
+  padding: 10px 0 4px;
+  /* single scrollable row so adding profiles never grows the header height */
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.profileNav::-webkit-scrollbar {
+  height: 6px;
+}
+
+.profileNav::-webkit-scrollbar-thumb {
+  background: #c9d0d8;
+  border-radius: 999px;
+}
+
+.profileNav button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  min-height: 34px;
+  border: 1px solid #c9d0d8;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #44515f;
+  padding: 0 14px;
+  font: inherit;
+  font-weight: 720;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profileNav button.active {
+  border-color: #1f6f78;
+  background: #e3f0f1;
+  color: #1f6f78;
+}
+
+.profileDot {
+  color: #c08a2d;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.scaffoldBanner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px solid #ead9b6;
+  background: #fdf7ea;
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin: 18px 0 22px;
+  color: #6b5621;
+}
+
+.scaffoldBanner strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #5a4716;
+}
+
+.scaffoldBanner p {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.scaffoldBanner code {
+  display: inline-block;
+  background: #2c2a26;
+  color: #f4efe4;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+}

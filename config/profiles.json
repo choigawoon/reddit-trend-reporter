@@ -1,0 +1,7 @@
+{
+  "profiles": [
+    { "id": "trend", "label": "SD Trend", "config": "config/reddit-report.json" },
+    { "id": "leaderboard", "label": "Model Leaderboard", "config": "config/leaderboard.json" },
+    { "id": "aigamedev", "label": "Game Dev Research", "config": "config/aigamedev.json" }
+  ]
+}

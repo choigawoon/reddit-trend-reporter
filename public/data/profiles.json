@@ -1,0 +1,28 @@
+{
+  "profiles": [
+    {
+      "id": "trend",
+      "label": "SD Trend",
+      "kind": "trend",
+      "latest": "data/latest.json",
+      "index": "data/index.json",
+      "has_data": true
+    },
+    {
+      "id": "leaderboard",
+      "label": "Model Leaderboard",
+      "kind": "leaderboard",
+      "latest": "data/leaderboard/latest.json",
+      "index": "data/leaderboard/index.json",
+      "has_data": false
+    },
+    {
+      "id": "aigamedev",
+      "label": "Game Dev Research",
+      "kind": "aigamedev",
+      "latest": "data/aigamedev/latest.json",
+      "index": "data/aigamedev/index.json",
+      "has_data": false
+    }
+  ]
+}

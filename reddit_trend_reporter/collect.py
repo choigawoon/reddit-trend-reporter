@@ -209,6 +209,7 @@ def collect(config: dict[str, Any]) -> dict[str, Any]:
     report = {
         "generated_at": utc_now(),
         "source": "rdt-cli",
+        "profile": config.get("profile", "trend"),
         "query": {
             "subreddits": config["subreddits"],
             "sort": config.get("sort", "top"),

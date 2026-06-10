@@ -37,11 +37,14 @@ Not yet implemented:
 
 ## Important Files
 
-- `config/reddit-report.json`: collection target settings.
+- `config/reddit-report.json`: collection target settings (the `trend` profile).
+- `config/profiles.json`: profile registry; `config/leaderboard.json`, `config/aigamedev.json` are scaffold profiles.
 - `pyproject.toml`: packages the pipeline as the `reddit-report` CLI (depends on `rdt-cli`).
-- `reddit_trend_reporter/collect.py`: repeatable Reddit listing collector + rdt resolution.
-- `reddit_trend_reporter/report.py`: LLM report generator. Keep prompt/schema changes here.
-- `reddit_trend_reporter/pipeline.py` + `cli.py`: collect -> report (-> optional build) and CLI wiring.
+- `reddit_trend_reporter/collect.py`: repeatable Reddit listing collector + rdt resolution + trending.
+- `reddit_trend_reporter/profiles.py`: per-profile prompt + schema + fallback. Add new report types here.
+- `reddit_trend_reporter/report.py`: runs Claude with the profile's prompt; writes analysis back.
+- `reddit_trend_reporter/manifest.py`: derives `public/data/profiles.json` (UI profile switcher) from the registry.
+- `reddit_trend_reporter/pipeline.py` + `cli.py`: collect -> report -> manifest (-> optional build) and CLI wiring.
 - `scripts/*.py`: thin backward-compat shims that call the package.
 - `src/main.jsx`: React UI.
 - `src/styles.css`: styling.

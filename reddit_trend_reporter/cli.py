@@ -11,7 +11,13 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from . import __version__, collect as collect_mod, pipeline as pipeline_mod, report as report_mod
+from . import (
+    __version__,
+    collect as collect_mod,
+    manifest as manifest_mod,
+    pipeline as pipeline_mod,
+    report as report_mod,
+)
 from .config import CONFIG_RELPATH, default_config_text, load_config, resolve_config_path
 
 
@@ -50,8 +56,21 @@ def cmd_pipeline(args: argparse.Namespace) -> int:
     collect_mod.write_outputs(report, config, base)
     if not args.skip_llm:
         report_mod.run(config, base, model=args.model, allow_fallback=args.allow_fallback)
+    manifest_path = manifest_mod.sync_manifest(base)
+    if manifest_path:
+        print(f"synced {manifest_path.relative_to(base) if manifest_path.is_relative_to(base) else manifest_path}")
     if args.build:
         pipeline_mod.run_build(base)
+    return 0
+
+
+def cmd_sync_manifest(args: argparse.Namespace) -> int:
+    base = _base_dir(args)
+    manifest_path = manifest_mod.sync_manifest(base)
+    if manifest_path:
+        print(f"wrote {manifest_path}")
+    else:
+        print("no config/profiles.json registry found; nothing to sync")
     return 0
 
 
@@ -100,6 +119,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_init.add_argument("--base-dir", type=Path, default=None)
     p_init.add_argument("--force", action="store_true")
     p_init.set_defaults(func=cmd_init)
+
+    p_manifest = sub.add_parser("sync-manifest", help="regenerate public/data/profiles.json from config/profiles.json")
+    p_manifest.add_argument("--base-dir", type=Path, default=None)
+    p_manifest.set_defaults(func=cmd_sync_manifest)
 
     return parser
 

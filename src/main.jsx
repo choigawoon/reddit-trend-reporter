@@ -42,7 +42,19 @@ function flattenTrending(data) {
   );
 }
 
+const LEGACY_MANIFEST = {
+  profiles: [
+    { id: 'trend', label: 'Report', kind: 'trend', latest: 'data/latest.json', index: 'data/index.json', has_data: true },
+  ],
+};
+
+function dirOf(path) {
+  return String(path || '').replace(/[^/]*$/, '');
+}
+
 function App() {
+  const [manifest, setManifest] = useState(null);
+  const [activeProfileId, setActiveProfileId] = useState(null);
   const [data, setData] = useState(null);
   const [activeData, setActiveData] = useState(null);
   const [reportIndex, setReportIndex] = useState(null);
@@ -52,8 +64,32 @@ function App() {
   const [sort, setSort] = useState('rank');
   const [page, setPage] = useState('report');
 
+  // 1) load the profile manifest once (falls back to single legacy profile)
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}data/latest.json`, { cache: 'no-store' })
+    fetch(`${import.meta.env.BASE_URL}data/profiles.json`, { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : LEGACY_MANIFEST))
+      .then((m) => (m && Array.isArray(m.profiles) && m.profiles.length ? m : LEGACY_MANIFEST))
+      .catch(() => LEGACY_MANIFEST)
+      .then((m) => {
+        setManifest(m);
+        setActiveProfileId((prev) => prev || m.profiles[0].id);
+      });
+  }, []);
+
+  const activeProfile = useMemo(() => {
+    if (!manifest) return null;
+    return manifest.profiles.find((p) => p.id === activeProfileId) || manifest.profiles[0];
+  }, [manifest, activeProfileId]);
+
+  // 2) load the active profile's latest report + archive index
+  useEffect(() => {
+    if (!activeProfile) return;
+    setError('');
+    setData(null);
+    setActiveData(null);
+    setReportIndex(null);
+    setPage('report');
+    fetch(`${import.meta.env.BASE_URL}${activeProfile.latest}`, { cache: 'no-store' })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -62,12 +98,15 @@ function App() {
         setData(payload);
         setActiveData(payload);
       })
-      .catch((err) => setError(String(err)));
-    fetch(`${import.meta.env.BASE_URL}data/index.json`, { cache: 'no-store' })
+      .catch((err) => {
+        // a scaffold profile may have no data yet — not a hard error
+        if (activeProfile.has_data) setError(String(err));
+      });
+    fetch(`${import.meta.env.BASE_URL}${activeProfile.index}`, { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : { reports: [] }))
       .then(setReportIndex)
       .catch(() => setReportIndex({ reports: [] }));
-  }, []);
+  }, [activeProfile]);
 
   const posts = useMemo(() => flattenPosts(activeData), [activeData]);
   const trendingPosts = useMemo(() => flattenTrending(activeData), [activeData]);
@@ -94,46 +133,71 @@ function App() {
   const analysis = activeData?.analysis;
   const topScore = posts[0]?.score || 0;
   const commentTotal = posts.reduce((sum, post) => sum + (post.comments || 0), 0);
+  const isTrend = (activeProfile?.kind || 'trend') === 'trend';
 
+  if (!manifest || !activeProfile) {
+    return <main className="status">Loading…</main>;
+  }
   if (error) {
     return <main className="status">Failed to load report: {error}</main>;
   }
 
-  if (!activeData) {
-    return <main className="status">Loading report...</main>;
-  }
+  const indexDir = dirOf(activeProfile.index);
 
   return (
     <main>
+      {manifest.profiles.length > 1 && (
+        <nav className="profileNav">
+          {manifest.profiles.map((p) => (
+            <button
+              key={p.id}
+              className={p.id === activeProfile.id ? 'active' : ''}
+              onClick={() => setActiveProfileId(p.id)}
+            >
+              {p.label}
+              {!p.has_data && <span className="profileDot" title="아직 데이터 없음">●</span>}
+            </button>
+          ))}
+        </nav>
+      )}
+
       <nav className="topNav">
         <button className={page === 'report' ? 'active' : ''} onClick={() => setPage('report')}>Live Report</button>
         <button className={page === 'reports' ? 'active' : ''} onClick={() => setPage('reports')}>Reports</button>
-        <button className={page === 'decision' ? 'active' : ''} onClick={() => setPage('decision')}>Decision Inputs</button>
+        {isTrend && <button className={page === 'decision' ? 'active' : ''} onClick={() => setPage('decision')}>Decision Inputs</button>}
         <button className={page === 'landing' ? 'active' : ''} onClick={() => setPage('landing')}>Why</button>
         <button className={page === 'manual' ? 'active' : ''} onClick={() => setPage('manual')}>How</button>
       </nav>
 
       {page === 'landing' && <Landing data={activeData} posts={posts} setPage={setPage} />}
-      {page === 'reports' && <Reports index={reportIndex} setActiveData={setActiveData} setPage={setPage} latestData={data} />}
-      {page === 'decision' && <DecisionInputs analysis={analysis} posts={posts} />}
+      {page === 'reports' && <Reports index={reportIndex} indexDir={indexDir} setActiveData={setActiveData} setPage={setPage} latestData={data} />}
       {page === 'manual' && <Manual />}
+      {page === 'decision' && isTrend && <DecisionInputs analysis={analysis} posts={posts} />}
       {page === 'report' && (
-        <Report
-          data={activeData}
-          posts={posts}
-          trendingPosts={trendingPosts}
-          analysis={analysis}
-          filteredPosts={filteredPosts}
-          flairs={flairs}
-          query={query}
-          setQuery={setQuery}
-          flair={flair}
-          setFlair={setFlair}
-          sort={sort}
-          setSort={setSort}
-          topScore={topScore}
-          commentTotal={commentTotal}
-        />
+        isTrend ? (
+          activeData ? (
+            <Report
+              data={activeData}
+              posts={posts}
+              trendingPosts={trendingPosts}
+              analysis={analysis}
+              filteredPosts={filteredPosts}
+              flairs={flairs}
+              query={query}
+              setQuery={setQuery}
+              flair={flair}
+              setFlair={setFlair}
+              sort={sort}
+              setSort={setSort}
+              topScore={topScore}
+              commentTotal={commentTotal}
+            />
+          ) : (
+            <section className="status">리포트를 불러오는 중…</section>
+          )
+        ) : (
+          <ScaffoldProfile profile={activeProfile} data={activeData} posts={posts} trendingPosts={trendingPosts} />
+        )
       )}
     </main>
   );
@@ -312,7 +376,7 @@ function VoicePanel({ title, items, evidenceMap }) {
   );
 }
 
-function Reports({ index, setActiveData, setPage, latestData }) {
+function Reports({ index, indexDir = 'data/', setActiveData, setPage, latestData }) {
   const reports = index?.reports || [];
 
   function openLatest() {
@@ -321,7 +385,7 @@ function Reports({ index, setActiveData, setPage, latestData }) {
   }
 
   function openReport(item) {
-    fetch(`${import.meta.env.BASE_URL}data/${item.path}`, { cache: 'no-store' })
+    fetch(`${import.meta.env.BASE_URL}${indexDir}${item.path}`, { cache: 'no-store' })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -531,6 +595,100 @@ https://<github-id>.github.io/reddit-trend-reporter/`}</CodeBlock>
   );
 }
 
+function TrendingSection({ trendingPosts = [], posts = [], sortLabel }) {
+  const topIds = useMemo(() => new Set(posts.map((post) => post.id)), [posts]);
+  if (!trendingPosts.length) return null;
+  return (
+    <section className="trending" aria-label="trending posts">
+      <div className="trendingHead">
+        <TrendingUp size={18} />
+        <h2>Trending · {sortLabel || 'rising'}</h2>
+        <span>지금 빠르게 오르는 글 (top과 별개로 떠오르는 신호)</span>
+      </div>
+      <div className="trendingList">
+        {trendingPosts.slice(0, 12).map((post) => (
+          <a className="trendingItem" key={`trend-${post.id}`} href={post.reddit_url} target="_blank" rel="noreferrer">
+            <span className="trendingRank"><TrendingUp size={13} />{post.rank}</span>
+            <div className="trendingBody">
+              <strong>{post.title}</strong>
+              <span className="trendingMeta">
+                r/{post.subredditName} · {numberFmt.format(post.score)} score · {numberFmt.format(post.comments)} comments
+                {!topIds.has(post.id) && <em className="trendingNew">NEW</em>}
+              </span>
+            </div>
+            <ExternalLink size={14} />
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ScaffoldProfile({ profile, data, posts = [], trendingPosts = [] }) {
+  const analysis = data?.analysis;
+  const commentTotal = posts.reduce((sum, post) => sum + (post.comments || 0), 0);
+  return (
+    <>
+      <section className="hero">
+        <div>
+          <p className="eyebrow">{profile.label}</p>
+          <h1>{analysis?.headline || `${profile.label} (스캐폴드)`}</h1>
+          <p className="summary">
+            {analysis?.summary || '이 프로파일은 설계틀(skeleton) 상태입니다. 아래 명령으로 수집·분석을 실행하면 채워집니다.'}
+          </p>
+        </div>
+        <div className="metaPanel" aria-label="profile metadata">
+          <div><Sparkles size={18} /><span>profile: {profile.id} · {profile.kind}</span></div>
+          {data?.generated_at && (
+            <div><CalendarClock size={18} /><span>{new Date(data.generated_at).toLocaleString()}</span></div>
+          )}
+        </div>
+      </section>
+
+      <section className="scaffoldBanner">
+        <TriangleAlert size={18} />
+        <div>
+          <strong>설계틀(skeleton) 상태 — 분석 스키마는 정의됨, 내용은 미작성</strong>
+          <p>이 프로파일을 채우려면 다음을 실행하세요:</p>
+          <code>reddit-report pipeline --config config/{profile.id}.json --allow-fallback</code>
+        </div>
+      </section>
+
+      {posts.length > 0 && (
+        <>
+          <section className="metrics" aria-label="summary metrics">
+            <Metric icon={<Star size={20} />} label="Top Score" value={numberFmt.format(posts[0]?.score || 0)} />
+            <Metric icon={<MessageCircle size={20} />} label="Total Comments" value={numberFmt.format(commentTotal)} />
+            <Metric icon={<BarChart3 size={20} />} label="Posts" value={numberFmt.format(posts.length)} />
+          </section>
+
+          <TrendingSection trendingPosts={trendingPosts} posts={posts} sortLabel={data?.query?.trending?.sort} />
+
+          <section className="postList" aria-label="collected posts">
+            {posts.slice(0, 12).map((post) => (
+              <article className="post" key={post.id}>
+                <div className="rank">{post.rank}</div>
+                <div>
+                  <div className="postTopline">
+                    <span>r/{post.subredditName}</span>
+                    <span>{post.flair || 'Unflaired'}</span>
+                  </div>
+                  <h2>{post.title}</h2>
+                  <div className="postStats">
+                    <span>{numberFmt.format(post.score)} score</span>
+                    <span>{numberFmt.format(post.comments)} comments</span>
+                    <a href={post.reddit_url} target="_blank" rel="noreferrer">Open <ExternalLink size={14} /></a>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </section>
+        </>
+      )}
+    </>
+  );
+}
+
 function Report({
   data,
   posts,
@@ -547,7 +705,6 @@ function Report({
   topScore,
   commentTotal,
 }) {
-  const topIds = useMemo(() => new Set(posts.map((post) => post.id)), [posts]);
   return (
     <>
       <section className="hero">
@@ -614,30 +771,7 @@ function Report({
         </section>
       )}
 
-      {trendingPosts.length > 0 && (
-        <section className="trending" aria-label="trending posts">
-          <div className="trendingHead">
-            <TrendingUp size={18} />
-            <h2>Trending · {data.query?.trending?.sort || 'rising'}</h2>
-            <span>지금 빠르게 오르는 글 (top과 별개로 떠오르는 신호)</span>
-          </div>
-          <div className="trendingList">
-            {trendingPosts.slice(0, 12).map((post) => (
-              <a className="trendingItem" key={`trend-${post.id}`} href={post.reddit_url} target="_blank" rel="noreferrer">
-                <span className="trendingRank"><TrendingUp size={13} />{post.rank}</span>
-                <div className="trendingBody">
-                  <strong>{post.title}</strong>
-                  <span className="trendingMeta">
-                    r/{post.subredditName} · {numberFmt.format(post.score)} score · {numberFmt.format(post.comments)} comments
-                    {!topIds.has(post.id) && <em className="trendingNew">NEW</em>}
-                  </span>
-                </div>
-                <ExternalLink size={14} />
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
+      <TrendingSection trendingPosts={trendingPosts} posts={posts} sortLabel={data.query?.trending?.sort} />
 
       <section className="toolbar" aria-label="post controls">
         <label className="searchBox">

@@ -1,0 +1,14 @@
+{
+  "profile": "leaderboard",
+  "subreddits": ["StableDiffusion", "LocalLLaMA", "comfyui"],
+  "sort": "top",
+  "time": "week",
+  "limit": 40,
+  "read_top_posts": 12,
+  "max_comments_per_post": 12,
+  "comment_depth": 1,
+  "output": "public/data/leaderboard/latest.json",
+  "history_dir": "data/runs/leaderboard",
+  "public_reports_dir": "public/data/leaderboard/reports",
+  "public_index": "public/data/leaderboard/index.json"
+}

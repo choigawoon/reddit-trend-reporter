@@ -1,0 +1,15 @@
+{
+  "profile": "aigamedev",
+  "subreddits": ["aigamedev"],
+  "sort": "top",
+  "time": "week",
+  "limit": 30,
+  "read_top_posts": 10,
+  "max_comments_per_post": 15,
+  "comment_depth": 1,
+  "trending": { "sort": "rising", "limit": 15 },
+  "output": "public/data/aigamedev/latest.json",
+  "history_dir": "data/runs/aigamedev",
+  "public_reports_dir": "public/data/aigamedev/reports",
+  "public_index": "public/data/aigamedev/index.json"
+}

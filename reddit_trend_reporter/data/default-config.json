@@ -1,4 +1,5 @@
 {
+  "profile": "trend",
   "subreddits": ["StableDiffusion"],
   "sort": "top",
   "time": "day",

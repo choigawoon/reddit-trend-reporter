@@ -130,6 +130,31 @@ Edit `config/reddit-report.json`.
 
 `trending` (optional) collects a second, lighter listing per subreddit to surface what's gaining momentum right now — separate from the established top posts. `sort` accepts `rising` (default), `hot`, `new`, etc. Remove the block to skip trending collection. Rising posts appear in a "Trending" section on the Live Report and are fed into the Claude analysis.
 
+## Profiles (multiple report types)
+
+One collection engine, several **profiles** — each is its own config + analysis
+prompt/schema + output namespace + UI tab. They share collection; only the
+analysis and presentation differ.
+
+- `config/profiles.json` is the registry (which profiles exist, which config drives each).
+- `config/reddit-report.json` → `trend` (the established subreddit trend report).
+- `config/leaderboard.json` → `leaderboard` (rank generative-AI models with evidence; on-demand). **Scaffold.**
+- `config/aigamedev.json` → `aigamedev` (keyword/interest/hot-workflow research; recurring). **Scaffold.**
+
+Each config sets `"profile"` and writes under its own `public/data/<id>/`
+namespace. Run one with `--config`:
+
+```bash
+reddit-report pipeline --config config/leaderboard.json --allow-fallback
+reddit-report sync-manifest   # regenerate public/data/profiles.json for the UI
+```
+
+`pipeline` regenerates the manifest automatically. The web app reads
+`public/data/profiles.json` to build a profile switcher; profiles without data
+yet show a scaffold page with the command to populate them. Add a new profile by
+dropping a config in `config/`, a prompt/fallback in
+`reddit_trend_reporter/profiles.py`, and an entry in `config/profiles.json`.
+
 ## Scheduled execution
 
 On the machine that has Reddit cookies and Claude access, use cron:
