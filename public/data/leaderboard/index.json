@@ -1,0 +1,28 @@
+{
+  "reports": [
+    {
+      "generated_at": "2026-06-10T13:41:11+00:00",
+      "path": "reports/20260610T134111Z.json",
+      "subreddits": [
+        "StableDiffusion",
+        "LocalLLaMA",
+        "comfyui"
+      ],
+      "sort": "top",
+      "time": "week",
+      "post_count": 120
+    }
+  ],
+  "latest": {
+    "generated_at": "2026-06-10T13:41:11+00:00",
+    "path": "reports/20260610T134111Z.json",
+    "subreddits": [
+      "StableDiffusion",
+      "LocalLLaMA",
+      "comfyui"
+    ],
+    "sort": "top",
+    "time": "week",
+    "post_count": 120
+  }
+}

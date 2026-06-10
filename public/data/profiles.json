@@ -14,7 +14,7 @@
       "kind": "leaderboard",
       "latest": "data/leaderboard/latest.json",
       "index": "data/leaderboard/index.json",
-      "has_data": false
+      "has_data": true
     },
     {
       "id": "aigamedev",
@@ -22,7 +22,7 @@
       "kind": "aigamedev",
       "latest": "data/aigamedev/latest.json",
       "index": "data/aigamedev/index.json",
-      "has_data": false
+      "has_data": true
     }
   ]
 }
