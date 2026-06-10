@@ -195,6 +195,10 @@ function App() {
           ) : (
             <section className="status">리포트를 불러오는 중…</section>
           )
+        ) : activeProfile.kind === 'leaderboard' ? (
+          <LeaderboardView profile={activeProfile} data={activeData} posts={posts} />
+        ) : activeProfile.kind === 'aigamedev' ? (
+          <ResearchView profile={activeProfile} data={activeData} posts={posts} trendingPosts={trendingPosts} />
         ) : (
           <ScaffoldProfile profile={activeProfile} data={activeData} posts={posts} trendingPosts={trendingPosts} />
         )
@@ -684,6 +688,123 @@ function ScaffoldProfile({ profile, data, posts = [], trendingPosts = [] }) {
             ))}
           </section>
         </>
+      )}
+    </>
+  );
+}
+
+function LeaderboardView({ profile, data, posts = [] }) {
+  const analysis = data?.analysis;
+  const evidenceMap = useMemo(() => new Map(posts.map((p) => [p.id, p])), [posts]);
+  if (!analysis) return <ScaffoldProfile profile={profile} data={data} posts={posts} />;
+  const models = analysis.models || [];
+  return (
+    <>
+      <section className="hero">
+        <div>
+          <p className="eyebrow">{profile.label}</p>
+          <h1>{analysis.headline}</h1>
+          <p className="summary">{analysis.summary}</p>
+        </div>
+        <div className="metaPanel" aria-label="leaderboard metadata">
+          <div><CalendarClock size={18} /><span>{new Date(data.generated_at).toLocaleString()}</span></div>
+          <div><BarChart3 size={18} /><span>{models.length} models</span></div>
+        </div>
+      </section>
+
+      <section className="leaderboard">
+        {models.map((m) => (
+          <article className={`lbRow tier-${String(m.tier || '').toLowerCase()}`} key={m.name}>
+            <div className="lbTier">{m.tier || '?'}</div>
+            <div className="lbMain">
+              <div className="lbHead">
+                <h3>{m.name}</h3>
+                {m.sentiment && <span className={`sentimentPill ${m.sentiment}`}>{m.sentiment}</span>}
+                {typeof m.mentions === 'number' && <span className="lbMentions">{m.mentions} mentions</span>}
+              </div>
+              {m.one_liner && <p className="lbOne">{m.one_liner}</p>}
+              {m.for_what && <p className="lbMeta"><strong>강점 분야</strong> {m.for_what}</p>}
+              <div className="lbCols">
+                {(m.strengths || []).length > 0 && (
+                  <div><h4>Strengths</h4><ul>{m.strengths.map((s) => <li key={s}>{s}</li>)}</ul></div>
+                )}
+                {(m.weaknesses || []).length > 0 && (
+                  <div><h4>Weaknesses</h4><ul>{m.weaknesses.map((s) => <li key={s}>{s}</li>)}</ul></div>
+                )}
+              </div>
+              {m.try_if && <p className="lbMeta"><strong>추천 대상</strong> {m.try_if}</p>}
+              <Evidence ids={m.evidence_post_ids || []} evidenceMap={evidenceMap} />
+            </div>
+          </article>
+        ))}
+      </section>
+
+      {analysis.methodology && (
+        <Panel title="Methodology"><p className="lbMethodology">{analysis.methodology}</p></Panel>
+      )}
+      {(analysis.risks_or_caveats || []).length > 0 && (
+        <Panel title="Caveats"><ul className="compactList">{analysis.risks_or_caveats.map((c) => <li key={c}>{c}</li>)}</ul></Panel>
+      )}
+    </>
+  );
+}
+
+function ResearchView({ profile, data, posts = [], trendingPosts = [] }) {
+  const analysis = data?.analysis;
+  const evidenceMap = useMemo(() => new Map(posts.map((p) => [p.id, p])), [posts]);
+  if (!analysis) return <ScaffoldProfile profile={profile} data={data} posts={posts} trendingPosts={trendingPosts} />;
+  return (
+    <>
+      <section className="hero">
+        <div>
+          <p className="eyebrow">{profile.label}</p>
+          <h1>{analysis.headline}</h1>
+          <p className="summary">{analysis.summary}</p>
+        </div>
+        <div className="metaPanel" aria-label="research metadata">
+          <div><CalendarClock size={18} /><span>{new Date(data.generated_at).toLocaleString()}</span></div>
+        </div>
+      </section>
+
+      {(analysis.keywords || []).length > 0 && (
+        <section className="panel">
+          <h2>Keywords</h2>
+          <div className="kwCloud">
+            {analysis.keywords.map((k) => (
+              <span className="kwChip" key={k.term}>{k.term}{typeof k.count === 'number' && <em>{k.count}</em>}</span>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="analysisGrid">
+        <Panel title="Hot Workflows">
+          {(analysis.hot_workflows || []).map((w) => (
+            <article className="topic" key={w.name}>
+              <h3>{w.name}</h3>
+              <p>{w.what}</p>
+              <Evidence ids={w.evidence_post_ids || []} evidenceMap={evidenceMap} />
+            </article>
+          ))}
+        </Panel>
+        <Panel title="Interests">
+          {(analysis.interests || []).map((i) => (
+            <article className="topic" key={i.theme}>
+              <h3>{i.theme}</h3>
+              <p>{i.detail}</p>
+              <Evidence ids={i.evidence_post_ids || []} evidenceMap={evidenceMap} />
+            </article>
+          ))}
+        </Panel>
+        <Panel title="Watch Next">
+          <ul className="compactList">{(analysis.watch_next || []).map((x) => <li key={x}>{x}</li>)}</ul>
+        </Panel>
+      </section>
+
+      <TrendingSection trendingPosts={trendingPosts} posts={posts} sortLabel={data?.query?.trending?.sort} />
+
+      {(analysis.risks_or_caveats || []).length > 0 && (
+        <Panel title="Caveats"><ul className="compactList">{analysis.risks_or_caveats.map((c) => <li key={c}>{c}</li>)}</ul></Panel>
       )}
     </>
   );
